@@ -12,7 +12,13 @@ impl Display for ChunkTypeError {
                 )
             }
             ChunkTypeError::InvalidSymbol => {
-                write!(f, "Invalid symbol in str!")
+                write!(f, "Invalid symbol in str! You str should contain only UTF-8 symbols")
+            }
+            ChunkTypeError::TooLong => {
+                write!(f, "Too long")
+            }
+            ChunkTypeError::WrongCrc => {
+                write!(f, "Wrong Crc")
             }
         }
     }
@@ -23,4 +29,6 @@ impl Error for ChunkTypeError {}
 pub enum ChunkTypeError {
     InvalidLength(usize),
     InvalidSymbol,
+    TooLong,
+    WrongCrc,
 }
