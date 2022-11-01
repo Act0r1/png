@@ -1,52 +1,53 @@
-use std::{str::FromStr, fmt, io::{Read, BufReader}};
+use std::{
+    fmt,
+    io::{BufReader, Read},
+    str::FromStr,
+};
 
-use crate::{chunk_type::ChunkType, Error, err::ChunkTypeError};
+use crate::{chunk_type::ChunkType, err::ChunkTypeError, Error};
 
 #[derive(Debug)]
 pub struct Chunk {
-    chunk_type: ChunkType,
     length: u32,
+    chunk_type: ChunkType,
     crc: u32,
     data: Vec<u8>,
 }
 
-const MAX_LENGTH:u32 = (1 << 31)- 1;
+const MAX_LENGTH: u32 = (1 << 31) - 1;
 
 impl TryFrom<&[u8]> for Chunk {
     type Error = Error;
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-         
         let mut reader = BufReader::new(value);
-        let mut buff: [u8;4] = [0;4];
+        let mut buff: [u8; 4] = [0; 4];
         reader.read_exact(&mut buff)?;
         let length = u32::from_be_bytes(buff);
         if length > MAX_LENGTH {
-            return Err(Box::from(ChunkTypeError::TooLong))
+            return Err(Box::from(ChunkTypeError::TooLong));
         }
         reader.read_exact(&mut buff)?;
         let chunk_type = ChunkType::try_from(buff).unwrap();
-        let mut data:Vec<u8> = vec![0; usize::try_from(length)?]; 
+        let mut data: Vec<u8> = vec![0; usize::try_from(length)?];
         reader.read_exact(&mut data)?;
-        
+
         reader.read_exact(&mut buff)?;
 
         let crc = u32::from_be_bytes(buff);
 
-        let actual_crc = crc::crc32::checksum_ieee(&[&chunk_type.bytes(), data.as_slice()].concat());
+        let actual_crc =
+            crc::crc32::checksum_ieee(&[&chunk_type.bytes(), data.as_slice()].concat());
 
         if crc != actual_crc {
-           return Err(Box::new(ChunkTypeError::WrongCrc)) 
+            return Err(Box::new(ChunkTypeError::WrongCrc));
         }
 
         Ok(Self {
-
             chunk_type,
             length,
             crc,
-            data
+            data,
         })
-
-
     }
 }
 impl fmt::Display for Chunk {
@@ -62,7 +63,7 @@ impl fmt::Display for Chunk {
 }
 
 impl Chunk {
-    fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
+    pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
         let crc = crc::crc32::checksum_ieee(&[&chunk_type.bytes(), data.as_slice()].concat());
         Self {
             chunk_type,
@@ -75,7 +76,7 @@ impl Chunk {
     fn length(&self) -> u32 {
         self.length
     }
-    fn chunk_type(&self) -> &ChunkType {
+    pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
     fn data(&self) -> &[u8] {
@@ -84,7 +85,7 @@ impl Chunk {
     fn crc(&self) -> u32 {
         self.crc
     }
-     /// Returns the data stored in this chunk as a `String`. This function will return an error
+    /// Returns the data stored in this chunk as a `String`. This function will return an error
     /// if the stored data is not valid UTF-8.
     pub fn data_as_string(&self) -> Result<String, ChunkTypeError> {
         Ok(String::from_utf8(self.data.clone()).unwrap())
@@ -96,7 +97,8 @@ impl Chunk {
     /// 3. The data itself *(`length` bytes)*
     /// 4. The CRC of the chunk type and data *(4 bytes)*
     pub fn as_bytes(&self) -> Vec<u8> {
-        self.length.to_be_bytes()
+        self.length
+            .to_be_bytes()
             .iter()
             .chain(self.chunk_type.bytes().iter())
             .chain(self.data.iter())

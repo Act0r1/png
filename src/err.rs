@@ -20,6 +20,9 @@ impl Display for ChunkTypeError {
             ChunkTypeError::WrongCrc => {
                 write!(f, "Wrong Crc")
             }
+            ChunkTypeError::InvalidHeader => {
+                write!(f," Wrong Png Header, header should be equal -> [137, 80, 78, 71, 13, 10, 26, 10]")
+            }
         }
     }
 }
@@ -31,4 +34,5 @@ pub enum ChunkTypeError {
     InvalidSymbol,
     TooLong,
     WrongCrc,
+    InvalidHeader,
 }
