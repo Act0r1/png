@@ -2,8 +2,12 @@
 name = "png"
 version = "0.1.0"
 edition = "2021"
-
+description = "A CLI to encode/decode messages in PNG files"
+readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 crc="1"
+clap = { version = "4.0.18", features = ["derive"] }
+colored = "2"
+structopt = "0.3.17"

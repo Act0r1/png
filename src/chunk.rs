@@ -4,7 +4,8 @@ use std::{
     str::FromStr,
 };
 
-use crate::{chunk_type::ChunkType, err::ChunkTypeError, Error};
+use crate::{chunk_type::ChunkType, error::ChunkTypeError};
+pub type Error = Box<dyn std::error::Error>;
 
 #[derive(Debug, Clone)]
 pub struct Chunk {
@@ -30,10 +31,8 @@ impl TryFrom<&[u8]> for Chunk {
         let chunk_type = ChunkType::try_from(buff).unwrap();
         let mut data: Vec<u8> = vec![0; usize::try_from(length)?];
         reader.read_exact(&mut data)?;
-        println!("read data");
         reader.read_exact(&mut buff)?;
 
-        println!("read buff");
         let crc = u32::from_be_bytes(buff);
 
         let actual_crc =

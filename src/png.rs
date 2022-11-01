@@ -1,14 +1,13 @@
 use crate::chunk::Chunk;
 use crate::chunk_type::ChunkType;
-use crate::err::ChunkTypeError;
-use crate::{Error, Result};
+use crate::error::ChunkTypeError;
 use std::convert::TryFrom;
 use std::fmt;
-use std::fs;
 use std::io::{BufReader, Read};
 use std::path::Path;
 use std::str::FromStr;
-
+pub type Error = Box<dyn std::error::Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 /// A PNG container as described by the PNG spec
 /// http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
 #[derive(Debug)]
@@ -20,9 +19,6 @@ pub struct Png {
 impl Png {
     // Fill in this array with the correct values per the PNG spec
     pub const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
-    pub const CRC: u8 = 4;
-    pub const CHUNK_TYPE_LENGTH: u8 = 4;
-    // pub const DATA_LENGTH: u8 = 4;
     /// Creates a `Png` from a list of chunks using the correct header
     pub fn from_chunks(chunks: Vec<Chunk>) -> Self {
         Self {
